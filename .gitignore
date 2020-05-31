@@ -1,4 +1,5 @@
-data_small
+data/
+TwtitterConfig.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
