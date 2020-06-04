@@ -1,5 +1,9 @@
 data/
+checkpoints/
 TwtitterConfig.py
+out.txt
+
+class_progress.jpg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

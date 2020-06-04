@@ -46,9 +46,10 @@ def save_in_dir(tweets):
     for i, tweet in enumerate(tweets):
         if i % 100 == 0:
             print('{}/{} images downloaded'.format(i, len(tweets)))
-
+        
+        rating = max(min(tweet[1], 10), 0)
         urllib.request.urlretrieve(tweet[2],
-            'data/dataset/{}/{}.jpg'.format(tweet[1], i))
+            'data/dataset/{}/{}.jpg'.format(rating, i))
 
 if __name__ == '__main__':
     get_tweets('ratemyskyperoom')

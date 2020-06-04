@@ -4,32 +4,28 @@ import torch.nn.functional as F
 class Classifier(nn.Module):
     def __init__(self):
         super(Classifier, self).__init__()
-        self.convolve = nn.Sequential(
-            # 256x256 to 64x64
-            nn.Conv2d(3, 32, kernel_size=4, stride=4),
-            nn.BatchNorm2d(32),
-            nn.ReLU(inplace=True),
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=6, stride=4, padding=2)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=4, stride=1)
 
-            # 64x64 to 16x16
-            nn.Conv2d(32, 64, kernel_size=4, stride=2),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
-            
-            # 16x16 to 4x4
-            nn.Conv2d(64, 128, kernel_size=4, stride=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
-        )
+        self.pool = nn.MaxPool2d(2, 2)
 
-        self.linear = nn.Sequential(
-            # Fully connected
-            nn.Linear(38016, 1024),
-            nn.Linear(1024, 512),
-            nn.Linear(512, 128),
-            nn.Linear(128, 10)
-        )
+        self.lin1 = nn.Linear(128 * 4 * 4, 1024)
+        self.lin2 = nn.Linear(1024, 256)
+        self.lin3 = nn.Linear(256, 64)
+        self.lin4 = nn.Linear(64, 11)
 
     def forward(self, x):
-        x = self.convolve(x)
-        print(x.shape)
-        return self.linear(x)
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = F.relu(self.conv3(x))
+
+        x = x.view(-1, 128 * 4 * 4)
+
+        x = F.relu(self.lin1(x))
+        x = F.relu(self.lin2(x))
+        x = F.relu(self.lin3(x))
+        x = self.lin4(x)
+
+        return x
+
