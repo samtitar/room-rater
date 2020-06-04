@@ -1,7 +1,7 @@
 import torch
 from model import Classifier
 
-checkpoint = torch.load('checkpoints/latest.pth.tar')
+checkpoint = torch.load('checkpoints/latest.tar')
 model = Classifier()
 model.eval()
 
