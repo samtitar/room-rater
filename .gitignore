@@ -2,7 +2,6 @@ data/
 checkpoints/
 TwitterConfig.py
 out.txt
-
 class_progress.jpg
 
 # Byte-compiled / optimized / DLL files
