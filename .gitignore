@@ -1,6 +1,6 @@
 data/
 checkpoints/
-TwtitterConfig.py
+TwitterConfig.py
 out.txt
 
 class_progress.jpg
