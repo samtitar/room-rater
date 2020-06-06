@@ -2,11 +2,18 @@ import datetime
 import tweepy
 import csv
 import urllib.request
+import argparse
+import os
 
 from pathlib import Path
+
+# Be sure to store twitter API keys in twitter_config.py
 from twitter_config import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET
 
-def get_tweets(screen_name, save_csv=True):
+def get_tweets(screen_name, filename='data/tweets.csv'):
+    '''Downloads all tweets to CSV file'''
+
+    # Setup authentication
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
     auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
     api = tweepy.API(auth)
@@ -14,42 +21,76 @@ def get_tweets(screen_name, save_csv=True):
     tweets = []
     tweet_count = 0
 
+    # Create cursor and loop over all results
     statuses = tweepy.Cursor(api.user_timeline, id=screen_name).items()
     for status in statuses:
+        # Only get tweets with media
         if 'media' in status.entities.keys():
             if tweet_count % 50 == 0:
                 print('{} tweets downloaded'.format(tweet_count))
             tweet_count += 1
 
             try:
+                # Get rating from tweet
                 rating = int(status.text.split('/10')[0][-2:])
                 tweet_data = [status.id_str, rating,
                             status.entities['media'][0]['media_url']]
                 tweets.append(tweet_data)
             except:
                 continue
-    
-    save_in_dir(tweets)
 
-    if save_csv:
-        with open(f'data/tweets.csv', 'w') as f:
-            writer = csv.writer(f)
-            writer.writerow(['id', 'rating', 'media'])
-            writer.writerows(tweets)
-    return tweets
+    with open(filename, 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(['id', 'rating', 'media'])
+        writer.writerows(tweets)
 
-def save_in_dir(tweets):
-    # Create class dirs
+def download_media(csv_path='data/tweets.csv', data_dir='data/dataset/'):
+    '''Download media from CSV file'''
+
+    # Create all directories
     for i in range(11):
-        Path('data/dataset/{}'.format(i)).mkdir(parents=True, exist_ok=True)
+        Path('{}/{}'.format(data_dir, i)).mkdir(parents=True, exist_ok=True)
 
-    for i, tweet in enumerate(tweets):
-        if i % 100 == 0:
-            print('{}/{} images downloaded'.format(i, len(tweets)))
-        
-        rating = max(min(tweet[1], 10), 0)
-        urllib.request.urlretrieve(tweet[2],
-            'data/dataset/{}/{}.jpg'.format(rating, i))
+    with open(csv_path, 'r') as csv_file:
+        tweet_reader = csv.reader(csv_file)
+        next(tweet_reader)
+
+        # Loop trough CSV
+        for i, (_, rating, media) in enumerate(tweet_reader):
+            if i % 50 == 0:
+                print('Downloaded {} tweet media'.format(i))
+            rating = max(min(int(rating), 10), 0) # Clamp rating between 0 - 10
+            urllib.request.urlretrieve(media, '{}/{}/{}.jpg'
+                .format(data_dir, rating, i))
+
+def DirType(path):
+    if os.path.isdir(path):
+        return path
+    else:
+        raise argparse.ArgumentTypeError(f'readable_dir:{path} is not a valid directory path')
+
+def ModeType(mode):
+    if mode == 'download-all':
+        return 0
+    elif mode == 'download-csv':
+        return 1
+    elif mode == 'download-media':
+        return 2
+    else:
+        raise argparse.ArgumentTypeError(f'Invalid mode selected {mode}')
 
 if __name__ == '__main__':
-    get_tweets('ratemyskyperoom')
+    parser = argparse.ArgumentParser(description='Download roomrater tweets.')
+    parser.add_argument('screenname', type=str, help='Twitter account name.')
+    parser.add_argument('mode', type=ModeType, help='Operation mode (download-all, download-csv or download-media).')
+    parser.add_argument('csv-file', type=argparse.FileType('r', encoding='UTF-8'), help='Destination/Origin of CSV file')
+    parser.add_argument('data-dir', type=DirType)
+    args = parser.parse_args()
+
+    if args.mode is 0 or args.mode is 1:
+        print('Downloading tweets into CSV')
+        get_tweets(args.screenname)
+
+    if args.mode is 0 or args.mode is 2:
+        print('Downloading tweet media into dataset')
+        download_media()
