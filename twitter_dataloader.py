@@ -4,7 +4,7 @@ import csv
 import urllib.request
 
 from pathlib import Path
-from TwitterConfig import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET
+from twitter_config import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET
 
 def get_tweets(screen_name, save_csv=True):
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
