@@ -44,9 +44,9 @@ def get_tweets(screen_name, filename='data/tweets.csv'):
         writer.writerow(['id', 'rating', 'media'])
         writer.writerows(tweets)
 
-def download_media(csv_path='data/tweets.csv', data_dir='data/dataset/'):
+def download_media(csv_path='data/tweets.csv', data_dir='data/twitter'):
     '''Download media from CSV file'''
-
+    
     # Create all directories
     for i in range(11):
         Path('{}/{}'.format(data_dir, i)).mkdir(parents=True, exist_ok=True)
@@ -63,13 +63,13 @@ def download_media(csv_path='data/tweets.csv', data_dir='data/dataset/'):
             urllib.request.urlretrieve(media, '{}/{}/{}.jpg'
                 .format(data_dir, rating, i))
 
-def DirType(path):
+def arg_dir_type(path):
     if os.path.isdir(path):
         return path
     else:
         raise argparse.ArgumentTypeError(f'readable_dir:{path} is not a valid directory path')
 
-def ModeType(mode):
+def arg_mode_type(mode):
     if mode == 'download-all':
         return 0
     elif mode == 'download-csv':
@@ -82,15 +82,15 @@ def ModeType(mode):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Download roomrater tweets.')
     parser.add_argument('screenname', type=str, help='Twitter account name.')
-    parser.add_argument('mode', type=ModeType, help='Operation mode (download-all, download-csv or download-media).')
-    parser.add_argument('csv-file', type=argparse.FileType('r', encoding='UTF-8'), help='Destination/Origin of CSV file')
-    parser.add_argument('data-dir', type=DirType)
+    parser.add_argument('mode', type=arg_mode_type, help='Operation mode (download-all, download-csv or download-media).')
+    parser.add_argument('csvpath', type=argparse.FileType('r', encoding='UTF-8'), help='Destination/Origin of CSV file')
+    parser.add_argument('datadir', type=arg_dir_type)
     args = parser.parse_args()
 
     if args.mode is 0 or args.mode is 1:
         print('Downloading tweets into CSV')
-        get_tweets(args.screenname)
+        get_tweets(args.screenname, filename=args.csvpath)
 
     if args.mode is 0 or args.mode is 2:
         print('Downloading tweet media into dataset')
-        download_media()
+        download_media(csv_path=args.csvpath.name, data_dir=args.datadir)

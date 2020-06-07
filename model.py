@@ -13,7 +13,7 @@ class Classifier(nn.Module):
         self.lin1 = nn.Linear(128 * 4 * 4, 1024)
         self.lin2 = nn.Linear(1024, 256)
         self.lin3 = nn.Linear(256, 64)
-        self.lin4 = nn.Linear(64, 11)
+        self.lin4 = nn.Linear(64, 9)
 
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
